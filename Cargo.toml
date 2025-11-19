@@ -1,0 +1,22 @@
+[workspace]
+members = [ "orca", "pumpfun","raydium"
+
+]
+resolver = "2"
+[workspace.dependencies]
+# 1. 核心 SDK (最新版)
+substreams = "0.7.0"
+substreams-solana = "0.14.2"
+
+# 2. 标准程序解析
+substreams-solana-program-instructions = "0.3.0"
+
+prost = "0.11"
+prost-types = "0.11"
+rand = "0.8.5"
+bs58 = "0.5.0"
+borsh = { version = "1.5.1", features = ["derive"] }
+lazy_static = "1.5.0"
+anyhow = "1.0.86"
+thiserror = "1.0.63"
+
