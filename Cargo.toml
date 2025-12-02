@@ -1,5 +1,5 @@
 [workspace]
-members = [ "orca", "pumpfun","raydium"
+members = [ "meteora", "orca", "pumpfun","raydium"
 
 ]
 resolver = "2"
