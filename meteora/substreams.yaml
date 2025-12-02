@@ -1,44 +1,45 @@
-specVersion: v0.1.0
-package:
-  name: meteora
-  version: v0.1.0
+specVersion: v0.1.0 # Substreams 规格版本
+package: # 包信息
+  name: meteora # 当前 Substreams 包名
+  version: v0.1.0 # 当前 Substreams 包版本
 
-imports:
-  solana: https://spkg.io/streamingfast/solana-common-v0.3.3.spkg
+imports: # 引用的外部 spkg 包
+  solana: https://spkg.io/streamingfast/solana-common-v0.3.3.spkg # 引入官方 solana-common 公共模块
 
-protobuf:
-  files:
-    - mydata.proto
-  importPaths:
-    - ./proto
-  excludePaths:
-    - sf/substreams/rpc
-    - sf/substreams/v1
-    - sf/substreams/sink
-    - sf/substreams/index
-    - sf/substreams/index/v1
-    - instructions.proto # sol.instructions.v1 from the v0.2.0 spkg
-    - transactions.proto # sol.transactions.v1 from the v0.2.0 spkg
-    - google
+protobuf: # Protobuf 配置
+  files: # 需要编译的本地 proto 文件列表
+    - meteora.proto # 自定义输出消息类型定义
+  importPaths: # proto 的搜索路径
+    - ./proto # 本项目 proto 文件所在目录
+  excludePaths: # 从导入的 proto 中排除的路径（不生成代码）
+    - sf/substreams/rpc # 排除 rpc 相关 proto
+    - sf/substreams/v1 # 排除 Substreams v1 通用定义
+    - sf/substreams/sink # 排除 sink 相关 proto
+    - sf/substreams/index # 排除 index 相关 proto
+    - sf/substreams/index/v1 # 排除 index v1 相关 proto
+    - instructions.proto # sol.instructions.v1 from the v0.2.0 spkg # 排除旧版 instructions 定义
+    - transactions.proto # sol.transactions.v1 from the v0.2.0 spkg # 排除旧版 transactions 定义
+    - google # 排除内置 google proto（由运行环境提供）
 
-binaries:
-  default:
-    type: wasm/rust-v1+wasm-bindgen-shims
-    file: ../target/wasm32-unknown-unknown/release/substreams.wasm
+binaries: # wasm 二进制相关配置
+  default: # 默认构建产物配置
+    type: wasm/rust-v1+wasm-bindgen-shims # 使用 Rust v1 + wasm-bindgen 运行时
+    file: ../target/wasm32-unknown-unknown/release/substreams.wasm # 编译后 wasm 文件路径
 
-modules:
-  - name: map_filtered_transactions
-    use: solana:transactions_by_programid_and_account_without_votes
-    initialBlock: 0
+modules: # 模块列表（数据处理管道）
+  - name: map_filtered_transactions # 模块名称：过滤后的交易列表
+    use: solana:transactions_by_programid_and_account_without_votes # 复用 solana-common 中的现成模块
+    initialBlock: 0 # 从创世高度开始处理区块
   
-  - name: map_my_data
-    kind: map
-    inputs:
-    - map: map_filtered_transactions
-    output:
-     type: proto:mydata.v1.MyData
+  - name: map_my_data # 自定义 map 模块名称
+    kind: map # 模块类型为 map（从输入映射到输出）
+    inputs: # 模块输入列表
+      - source: sf.substreams.v1.Clock # 新增 Clock 作为输入，提供当前区块时间信息
+      - map: map_filtered_transactions # 依赖上一个模块的输出（过滤后的交易列表）
+    output: # 模块输出类型
+     type: proto:mydata.v1.MyData # 输出为 proto 定义的 mydata.v1.MyData 消息
 
-network: solana-mainnet-beta
+network: solana-mainnet-beta # 目标网络：Solana 主网 beta
 
-params:
-  map_filtered_transactions: program:TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA && account:3MQw72oGrizUDEcD9gZYMgqo1pc364y5GnnJHcGpvurK
+params: # 运行时参数配置
+  map_filtered_transactions: program:LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo # 过滤交易的 program id 和 account 条件
