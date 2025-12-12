@@ -2,7 +2,7 @@ mod constant;
 #[allow(unused)]
 mod pb;
 
-use crate::constant::FILTERS;
+use crate::constant::FILTER_PROGRAM_IDS;
 use bs58;
 use pb::meteora::Meteora;
 use substreams_solana::pb::sf::solana::r#type::v1::{
@@ -16,7 +16,7 @@ struct Filters(Vec<Vec<u8>>);
 // 主 map 处理：从 blocks_without_votes 过滤出匹配程序 ID 的交易并打包输出
 #[substreams::handlers::map]
 fn meteora(block: Block) -> Meteora {
-    let program_filters = parse_filters(FILTERS);
+    let program_filters = parse_filters(FILTER_PROGRAM_IDS);
 
     let mut my_data = Meteora::default();
     for tx in block.transactions.into_iter() {
@@ -28,23 +28,22 @@ fn meteora(block: Block) -> Meteora {
     my_data
 }
 
-// 解析形如 program:<base58> 的过滤参数为二进制公钥列表
-fn parse_filters(params: &str) -> Filters {
+// 解析过滤参数为二进制公钥列表；支持 program:<base58> 或直接 base58，自动去重
+fn parse_filters(params: &[&str]) -> Filters {
     let mut filters = Filters::default();
+    let mut seen = std::collections::HashSet::new();
 
-    for token in params
-        .split(|c: char| c == '&' || c == '|' || c.is_whitespace())
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-    {
-        if let Some(value) = token
+    for token in params.iter().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+        let value = token
             .strip_prefix("program:")
             .or_else(|| token.strip_prefix("program="))
-        {
-            if let Some(decoded) = decode_pubkey(value) {
+            .unwrap_or(token);
+
+        if let Some(decoded) = decode_pubkey(value) {
+            // 避免重复公钥导致无效匹配开销
+            if seen.insert(decoded.clone()) {
                 filters.0.push(decoded);
             }
-            continue;
         }
     }
 

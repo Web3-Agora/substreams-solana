@@ -1,3 +1,3 @@
 pub mod constant;
 
-pub use constant::FILTERS;
+pub use constant::FILTER_PROGRAM_IDS;
