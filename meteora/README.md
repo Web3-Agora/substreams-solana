@@ -19,13 +19,6 @@ substreams registry publish       # Publish your Substreams to substreams.dev
 
 ## Modules
 
-### `map_filtered_transactions`
+### `meteora`
 
-This module retrieves Solana transactions filtered by one or several Program IDs.
-You will only receive transactions containing the specified Program IDs).
-
-**NOTE:** Transactions containing voting instructions will NOT be present.
-
-### `map_my_data`
-
-This module allows you to create transformations on the filtered transactions.
+Consumes Solana `blocks_without_votes` from `solana-common`, applies constant filters (defined in `src/lib.rs`) for `program`/`account`, and emits matching transactions as `MyData`.

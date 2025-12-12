@@ -1,17 +1,15 @@
 // @generated
-pub mod mydata {
-    // @@protoc_insertion_point(attribute:mydata.v1)
-    pub mod v1 {
-        include!("mydata.v1.rs");
-        // @@protoc_insertion_point(mydata.v1)
-    }
+// @@protoc_insertion_point(attribute:meteora)
+pub mod meteora {
+    include!("meteora.rs");
+    // @@protoc_insertion_point(meteora)
 }
 pub mod sf {
     pub mod solana {
         pub mod r#type {
             // @@protoc_insertion_point(attribute:sf.solana.type.v1)
             pub mod v1 {
-                include!("sf.solana.type.v1.rs");
+                pub use substreams_solana::pb::sf::solana::r#type::v1::*;
                 // @@protoc_insertion_point(sf.solana.type.v1)
             }
         }

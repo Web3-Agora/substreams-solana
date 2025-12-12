@@ -27,19 +27,11 @@ binaries: # wasm 二进制相关配置
     file: ../target/wasm32-unknown-unknown/release/substreams.wasm # 编译后 wasm 文件路径
 
 modules: # 模块列表（数据处理管道）
-  - name: map_filtered_transactions # 模块名称：过滤后的交易列表
-    use: solana:transactions_by_programid_and_account_without_votes # 复用 solana-common 中的现成模块
-    initialBlock: 0 # 从创世高度开始处理区块
-  
-  - name: map_my_data # 自定义 map 模块名称
+  - name: meteora # 自定义 map 模块名称
     kind: map # 模块类型为 map（从输入映射到输出）
+    initialBlock: 0 # 从创世高度开始处理区块
     inputs: # 模块输入列表
-      - source: sf.substreams.v1.Clock # 新增 Clock 作为输入，提供当前区块时间信息
-      - map: map_filtered_transactions # 依赖上一个模块的输出（过滤后的交易列表）
+      - map: solana:blocks_without_votes # 使用 solana-common 提供的去除投票交易的区块数据
     output: # 模块输出类型
-     type: proto:mydata.v1.MyData # 输出为 proto 定义的 mydata.v1.MyData 消息
-
+      type: proto:meteora.Meteora # 输出为 proto 定义的 meteora.Meteora 消息
 network: solana-mainnet-beta # 目标网络：Solana 主网 beta
-
-params: # 运行时参数配置
-  map_filtered_transactions: program:LBUZKhRxPF3XUpBCjp4YzTKgLccjZhTSDM9YuVaPwxo # 过滤交易的 program id 和 account 条件

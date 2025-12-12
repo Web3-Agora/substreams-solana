@@ -20,3 +20,5 @@ lazy_static = "1.5.0"
 anyhow = "1.0.86"
 thiserror = "1.0.63"
 
+[patch.crates-io]
+substreams-solana = { git = "https://github.com/streamingfast/substreams-solana", branch = "master" }

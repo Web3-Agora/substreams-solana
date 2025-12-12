@@ -2,6 +2,7 @@
 name = "meteora"
 version = "0.0.1"
 edition = "2021"
+autobins = false
 
 [lib]
 name = "substreams"
@@ -12,6 +13,8 @@ prost = "0.13.3"
 prost-types = "0.13.3"
 substreams = "0.6.0"
 substreams-solana = "0.14.1"
+substreams-solana-utils = { git = "https://github.com/Web3-Agora/substreams-solana-utils.git" }
+bs58 = "0.5.0"
 
 [profile.release]
 lto = true
