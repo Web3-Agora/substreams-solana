@@ -18,6 +18,7 @@ use substreams_solana_utils::spl_token::TOKEN_PROGRAM_ID;
 
 const TOKEN_2022_PROGRAM_ID: Pubkey =
     Pubkey(b58!("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"));
+const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
 
 // ============================================================================
 // 主 Map Handler
@@ -67,12 +68,11 @@ fn parse_transaction(
     // 获取交易签名
     let signature = bs58::encode(&transaction.signatures[0]).into_string();
 
-    // 获取发起者 (第一个签名者)
-    let signer = get_account_key(message, meta, 0)?;
-    let signer_str = bs58::encode(&signer).into_string();
-
     // 获取完整账户列表 (包含 ALT 补充地址)
-    let account_keys = resolved_account_keys(message, Some(meta));
+    let account_keys = resolved_account_keys(message, meta);
+
+    // 获取发起者 (第一个签名者)
+    let signer_str = bs58::encode(account_keys.get(0)?).into_string();
 
     let mut swap_events = Vec::new();
 
@@ -140,7 +140,6 @@ fn parse_transaction(
             .or_else(|| {
                 extract_swap_amounts_by_accounts(
                     meta,
-                    &signer_str,
                     input_account_idx.map(|x| x as u32),
                     output_account_idx.map(|x| x as u32),
                 )
@@ -383,7 +382,6 @@ fn extract_swap_amounts_by_inner_transfers<'a>(
         return None;
     }
 
-    const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
     if input_mint == WSOL_MINT && output_mint != WSOL_MINT {
         // Buy: spend SOL/WSOL to receive token
         Some((
@@ -420,20 +418,14 @@ fn extract_swap_amounts_by_inner_transfers<'a>(
     }
 }
 
-/// 根据指令的输入/输出账户索引，从 Token Balance 变化中提取 Swap 金额
-/// 同时处理临时 WSOL 账户的情况（通过 Native SOL 余额变化）
-/// signer: 交易签名者地址，只统计 owner == signer 的 Token 变化
+/// 根据指令的输入/输出账户索引，从 Token Balance 变化中提取 Swap 金额（回退方案）
 fn extract_swap_amounts_by_accounts(
     meta: &TransactionStatusMeta,
-    signer: &str,
     input_account_idx: Option<u32>,
     output_account_idx: Option<u32>,
 ) -> Option<(String, String, u64, u64, u32, u32, SwapSide)> {
     let pre_balances = &meta.pre_token_balances;
     let post_balances = &meta.post_token_balances;
-
-    // WSOL mint 地址
-    const WSOL_MINT: &str = "So11111111111111111111111111111111111111112";
 
     // 首先尝试通过指定的账户索引查找
     if let (Some(input_idx), Some(output_idx)) = (input_account_idx, output_account_idx) {
@@ -445,117 +437,63 @@ fn extract_swap_amounts_by_accounts(
             Some((output_mint, output_amount, output_decimals)),
         ) = (input_change, output_change)
         {
-            // 输入应该是负数 (用户付出)，输出应该是正数 (用户收到)
-            if input_amount < 0 && output_amount > 0 {
+            // 期望：一正一负（付出/收到）
+            let (spent_mint, spent_amount, spent_decimals, received_mint, received_amount, received_decimals) =
+                if input_amount < 0 && output_amount > 0 {
+                    (
+                        input_mint,
+                        (-input_amount) as u64,
+                        input_decimals,
+                        output_mint,
+                        output_amount as u64,
+                        output_decimals,
+                    )
+                } else if output_amount < 0 && input_amount > 0 {
+                    (
+                        output_mint,
+                        (-output_amount) as u64,
+                        output_decimals,
+                        input_mint,
+                        input_amount as u64,
+                        input_decimals,
+                    )
+                } else {
+                    return None;
+                };
+
+            if spent_mint == WSOL_MINT && received_mint != WSOL_MINT {
                 return Some((
-                    output_mint,            // base_mint (收到的)
-                    input_mint,             // quote_mint (付出的)
-                    output_amount as u64,   // base_amount
-                    (-input_amount) as u64, // quote_amount
-                    output_decimals,        // base_decimals
-                    input_decimals,         // quote_decimals
-                    SwapSide::SideBuy,      // 用 quote 买 base
-                ));
-            }
-        }
-    }
-
-    // 收集签名者拥有的 Token Balance 变化 (只统计 owner == signer)
-    let mut changes: Vec<(String, i64, u32)> = Vec::new();
-
-    for post in post_balances.iter() {
-        // 只统计签名者的 Token 变化
-        if post.owner != signer {
-            continue;
-        }
-
-        let account_idx = post.account_index;
-        let pre_amount: u64 = pre_balances
-            .iter()
-            .find(|b| b.account_index == account_idx)
-            .and_then(|b| b.ui_token_amount.as_ref())
-            .and_then(|amt| amt.amount.parse().ok())
-            .unwrap_or(0);
-
-        let post_amount: u64 = post
-            .ui_token_amount
-            .as_ref()
-            .and_then(|amt| amt.amount.parse().ok())
-            .unwrap_or(0);
-
-        let change = post_amount as i64 - pre_amount as i64;
-        if change != 0 {
-            let mint = post.mint.clone();
-            let decimals = post
-                .ui_token_amount
-                .as_ref()
-                .map(|a| a.decimals)
-                .unwrap_or(0);
-            changes.push((mint, change, decimals));
-        }
-    }
-
-    // 方案 1: 找到一个负变化和一个正变化（两个不同 Token）
-    let negative = changes.iter().find(|(_, c, _)| *c < 0);
-    let positive = changes.iter().find(|(_, c, _)| *c > 0);
-
-    if let (
-        Some((quote_mint, quote_change, quote_decimals)),
-        Some((base_mint, base_change, base_decimals)),
-    ) = (negative, positive)
-    {
-        if quote_mint != base_mint {
-            return Some((
-                base_mint.clone(),
-                quote_mint.clone(),
-                *base_change as u64,
-                (-*quote_change) as u64,
-                *base_decimals,
-                *quote_decimals,
-                SwapSide::SideBuy,
-            ));
-        }
-    }
-
-    // 方案 2: 只有一个 Token 变化 + Native SOL 变化（临时 WSOL 场景）
-    // 计算用户的 Native SOL 变化 (preBalances[0] - postBalances[0] - fee)
-    if !meta.pre_balances.is_empty() && !meta.post_balances.is_empty() {
-        let pre_sol = meta.pre_balances[0] as i64;
-        let post_sol = meta.post_balances[0] as i64;
-        let fee = meta.fee as i64;
-
-        // 用户实际的 SOL 变化（排除 gas 费用）
-        let sol_change = post_sol - pre_sol + fee; // 负数 = 付出，正数 = 收到
-
-        // 如果有显著的 SOL 变化（超过 1000 lamports 以排除噪音）
-        if sol_change.abs() > 1000 {
-            // 场景 A: 用户付出 SOL，收到 Token (Buy)
-            if sol_change < 0 && positive.is_some() && negative.is_none() {
-                let (base_mint, base_change, base_decimals) = positive.unwrap();
-                return Some((
-                    base_mint.clone(),
-                    WSOL_MINT.to_string(),
-                    *base_change as u64,
-                    (-sol_change) as u64,
-                    *base_decimals,
-                    9, // SOL decimals
+                    received_mint,
+                    spent_mint,
+                    received_amount,
+                    spent_amount,
+                    received_decimals,
+                    spent_decimals,
                     SwapSide::SideBuy,
                 ));
             }
 
-            // 场景 B: 用户付出 Token，收到 SOL (Sell)
-            if sol_change > 0 && negative.is_some() && positive.is_none() {
-                let (quote_mint, quote_change, quote_decimals) = negative.unwrap();
+            if received_mint == WSOL_MINT && spent_mint != WSOL_MINT {
                 return Some((
-                    WSOL_MINT.to_string(),
-                    quote_mint.clone(),
-                    sol_change as u64,
-                    (-*quote_change) as u64,
-                    9, // SOL decimals
-                    *quote_decimals,
+                    spent_mint,
+                    received_mint,
+                    spent_amount,
+                    received_amount,
+                    spent_decimals,
+                    received_decimals,
                     SwapSide::SideSell,
                 ));
             }
+
+            return Some((
+                received_mint,
+                spent_mint,
+                received_amount,
+                spent_amount,
+                received_decimals,
+                spent_decimals,
+                SwapSide::SideUnknown,
+            ));
         }
     }
 
@@ -601,27 +539,15 @@ fn find_token_balance_change(
     Some((mint, change, decimals))
 }
 
-/// 获取账户地址 (支持 ALT)
-fn get_account_key(
-    message: &Message,
-    meta: &TransactionStatusMeta,
-    index: usize,
-) -> Option<Vec<u8>> {
-    let keys = resolved_account_keys(message, Some(meta));
-    keys.get(index).cloned()
-}
-
 /// 合并 message 中的 account_keys 与 ALT 补充地址
-fn resolved_account_keys(message: &Message, meta: Option<&TransactionStatusMeta>) -> Vec<Vec<u8>> {
+fn resolved_account_keys(message: &Message, meta: &TransactionStatusMeta) -> Vec<Vec<u8>> {
     let mut keys = message.account_keys.clone();
 
-    if let Some(meta) = meta {
-        if !meta.loaded_writable_addresses.is_empty() {
-            keys.extend(meta.loaded_writable_addresses.clone());
-        }
-        if !meta.loaded_readonly_addresses.is_empty() {
-            keys.extend(meta.loaded_readonly_addresses.clone());
-        }
+    if !meta.loaded_writable_addresses.is_empty() {
+        keys.extend(meta.loaded_writable_addresses.clone());
+    }
+    if !meta.loaded_readonly_addresses.is_empty() {
+        keys.extend(meta.loaded_readonly_addresses.clone());
     }
 
     keys
