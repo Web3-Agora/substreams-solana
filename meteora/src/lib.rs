@@ -69,7 +69,6 @@ fn parse_transaction(
     let account_keys = resolved_account_keys(message, Some(meta));
 
     let mut swap_events = Vec::new();
-    let mut seen_pools: std::collections::HashSet<String> = std::collections::HashSet::new();
 
     // 遍历所有指令 (包括内部指令)
     for inst in get_flattened_instructions(tx) {
@@ -118,12 +117,6 @@ fn parse_transaction(
 
         let input_account_idx = inst_accounts.get(input_acc_idx).map(|&idx| idx as u32);
         let output_account_idx = inst_accounts.get(output_acc_idx).map(|&idx| idx as u32);
-
-        // 检查是否已处理过这个 pool (避免 CPI 造成的重复)
-        if seen_pools.contains(&pool) {
-            continue;
-        }
-        seen_pools.insert(pool.clone());
 
         // 从 Token Balance 变化计算 Swap 金额
         let (base_mint, quote_mint, base_amount, quote_amount, base_decimals, quote_decimals, side) =
