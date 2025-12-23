@@ -3,24 +3,21 @@ mod constant;
 mod pb;
 
 use crate::constant::FILTER_PROGRAM_IDS;
-use bs58;
+
 use pb::meteora::Meteora;
 use substreams_solana::pb::sf::solana::r#type::v1::{
     Block, ConfirmedTransaction, Message, TransactionStatusMeta,
 };
 use substreams_solana_utils::instruction::get_flattened_instructions;
 
-#[derive(Default)]
-struct Filters(Vec<Vec<u8>>);
+
 
 // 主 map 处理：从 blocks_without_votes 过滤出匹配程序 ID 的交易并打包输出
 #[substreams::handlers::map]
 fn meteora(block: Block) -> Meteora {
-    let program_filters = parse_filters(FILTER_PROGRAM_IDS);
-
     let mut my_data = Meteora::default();
     for tx in block.transactions.into_iter() {
-        if should_keep_transaction(&tx, &program_filters) {
+        if should_keep_transaction(&tx) {
             my_data.transactions.push(tx);
         }
     }
@@ -28,30 +25,8 @@ fn meteora(block: Block) -> Meteora {
     my_data
 }
 
-// 解析过滤参数为二进制公钥列表；支持 program:<base58> 或直接 base58，自动去重
-fn parse_filters(params: &[&str]) -> Filters {
-    let mut filters = Filters::default();
-    let mut seen = std::collections::HashSet::new();
-
-    for token in params.iter().map(|s| s.trim()).filter(|s| !s.is_empty()) {
-        let value = token
-            .strip_prefix("program:")
-            .or_else(|| token.strip_prefix("program="))
-            .unwrap_or(token);
-
-        if let Some(decoded) = decode_pubkey(value) {
-            // 避免重复公钥导致无效匹配开销
-            if seen.insert(decoded.clone()) {
-                filters.0.push(decoded);
-            }
-        }
-    }
-
-    filters
-}
-
 // 判断交易是否包含目标程序 ID 的指令
-fn should_keep_transaction(tx: &ConfirmedTransaction, filters: &Filters) -> bool {
+fn should_keep_transaction(tx: &ConfirmedTransaction) -> bool {
     let (message, meta) = match (
         tx.transaction.as_ref().and_then(|t| t.message.as_ref()),
         tx.meta.as_ref(),
@@ -62,14 +37,14 @@ fn should_keep_transaction(tx: &ConfirmedTransaction, filters: &Filters) -> bool
 
     let account_keys = resolved_account_keys(message, Some(meta));
 
-    if filters.0.is_empty() {
-        return true;
-    }
-
     let matches_filter = |program_id_index: u32| -> bool {
         account_keys
             .get(program_id_index as usize)
-            .map(|program_key| filters.0.iter().any(|target| target == program_key))
+            .map(|program_key| {
+                FILTER_PROGRAM_IDS
+                    .iter()
+                    .any(|target| target.0.as_slice() == program_key.as_slice())
+            })
             .unwrap_or(false)
     };
 
@@ -99,7 +74,4 @@ fn resolved_account_keys(message: &Message, meta: Option<&TransactionStatusMeta>
     keys
 }
 
-// 将 base58 公钥字符串转为字节
-fn decode_pubkey(value: &str) -> Option<Vec<u8>> {
-    bs58::decode(value.trim()).into_vec().ok()
-}
+
