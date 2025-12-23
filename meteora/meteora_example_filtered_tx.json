@@ -1,0 +1,160 @@
+substreams run -e mainnet.sol.streamingfast.io:443 \
+	-o json \
+	meteora/substreams.yaml \
+	meteora \
+	-s 388584685 -t +1
+{
+  "@module": "meteora",
+  "@block": 388584685,
+  "@type": "meteora.SwapEvents",
+  "@data": {
+    "swaps": [
+      {
+        "pool": "6ib2gUqQu3HHZLKs48ghfPSwdDfy7zzap5ocBoJ5Sp7Y",
+        "signature": "8SLoveMnCiJjYGfZrDEzWTTVhs3cjWEcy5d5Mzk1BUhSWLoLNfNaZPtUJxkXc8x8hKm3Lh6qaCFSbZxMaRaYPpY",
+        "user": "Dzo9t9Uh4L13iFAx6e46WSkapz6nCnaXqE9X7cdtzs9U",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 6,
+        "baseMint": "5MKvCNTg2DppXWTmKC5tNm6ep292eyDdygsupLdSzok6",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "1597556241185",
+        "quoteAmount": "3566245261",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "7w2jMyjayemURXmNMn5umBcsASnM5U2wpmhpYyUTyLaD",
+        "signature": "29L9dp5upVi327M9LFU68tkxEnQCvN9rbp7RdfKzcjkpEdnQNvVriDgaf1fSfkLEZ543sTsuRuoAaDXjMYfeajhM",
+        "user": "Ep4qscWsPiwQUUY5RKMRqKNxHzsLiZ8mhGfG7PNcF5U6",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 34,
+        "baseMint": "5vRe2k3ibi2BLUa6oXHjNYb3df6crt3q7b1ojAxh4CzP",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "505206780043",
+        "quoteAmount": "3334779803",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "E5YSXyWngfAvymq7ZxjyeKJ3BHxE3AvezF3HwLma7tPF",
+        "signature": "357vHmM41WDXCpMx9mms2X6CSsp5UtBzsKz5KgzPPM2MGbHs6yaENah3dE4SPTKWENf5BNnQVcMewNhszVPXUfsA",
+        "user": "4qJc2Dw797XnV2zbCz4671oBZifi8tpGDmv5BK68p7eS",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 53,
+        "baseMint": "CBW6nd9af4nnrvpwjG2zY8hsctcvd74RkttNkWqvmvTa",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "108710710",
+        "quoteAmount": "1948000",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "CtmQdWmcPvaYNu5VYqt9ZHGD2hdCAnTXJZcaAkXEeLTR",
+        "signature": "5cU567MnaCkZgC1QsN5QHdi8jGnpF73ULmzefyYJiRDTMeMwMN2sd3ZKq8fJTGopdVXGpUdRsvbH2xSfRUEtFxY6",
+        "user": "BEwZWPNudqDVQwJHENctorCWCS1srWfAftJNizz1E97m",
+        "platform": "meteora_dlmm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 62,
+        "baseMint": "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "579370675",
+        "quoteAmount": "42283148",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "HTvjzsfX3yU6BUodCjZ5vZkUrAxMDTrBs3CJaq43ashR",
+        "signature": "2ZziauKYLyZRmG1RL1J8NGR2H4Un11aSpAmm6KbAQ8yaNhJckn6VaxYsiKnRzUYA865ev5Sqv3sp7kPKoCYTJMXC",
+        "user": "GVYEvQGTjRkJh24xuSAud1jCLLGNQMFB8Rzb5hJMcyhd",
+        "platform": "meteora_dlmm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 63,
+        "baseMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "311011154",
+        "quoteAmount": "2500100000",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "U2X2awTEZdAqHeSwH8GBhiq7EyZmxPJsnUBrBdmxa8s",
+        "signature": "f7SEVQ7k7XsX74M7xtdfEMs939LDXPGgPXortjKBuTsX1jigocE8rPCE8E6EdErNB1c92Hzy7tZXhNZB6tQvDBu",
+        "user": "GiaBSCPKMpMh5kbexzwTpPkZVr5quJVf43xaGDtheQcm",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 107,
+        "baseMint": "Haa1ZcwKtV1QJfQ4QqxBG4xq5XPUoR52Xo5a7MzjsdCT",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "9425283870",
+        "quoteAmount": "140942989",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "7RdrjEtA5N236gqZydFZm6gJc463d5v7UUXGx46NuWuS",
+        "signature": "5FguU1RPMQhY2FzaHU4rESSgEyQpWC39zcMePoPpFaHMwq6MdWKqRsxXiDsRicvDJDYD2bWNCyYPSc1PLWDMDz8H",
+        "user": "9fqFz2YW8pynmhdbwmH2tfgRXhndywoUaxvcMyDixrpX",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 109,
+        "baseMint": "GHVxi1JSKeWZyCTgdaeQR2srhELCiGonNeqWm2pRysQs",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "2882658627935",
+        "quoteAmount": "3446662763",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      },
+      {
+        "pool": "CtmQdWmcPvaYNu5VYqt9ZHGD2hdCAnTXJZcaAkXEeLTR",
+        "signature": "5jS9kCSLnKGVy1L6Rd2Vd7mMDAtMwSsUT9b3TSupyep2NsBcvhJpwpeJ7bpDbZipZPoPH9avJiWvWB9yNgWwTgy8",
+        "user": "GVWF4KnvMj2mKucqv9AfoudqBRjb1bmEW73GaBQoJDJv",
+        "platform": "meteora_dlmm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 177,
+        "baseMint": "Gbu7JAKhTVtGyRryg8cYPiKNhonXpUqbrZuCDjfUpump",
+        "quoteMint": "CrAr4RRJMBVwRsZtT62pEhfA9H5utymC2mVx8e7FreP2",
+        "baseAmount": "104069476830",
+        "quoteAmount": "4440718925804",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 8
+      },
+      {
+        "pool": "2Uxk2TUAJsdyS8bLdAErViqyLph5xCPHohFkSG4s42LE",
+        "signature": "Cq1R2sKw1pGawRHXA4aKc1D8EqW8R5a75xgLcXFTPF5Ld7P3otssdCDUhpkM9syiXA1FyaEFi7kPD7Zam1DvPQk",
+        "user": "4XiBf7T3e4gBLHJt4UhndTXbYZKYRrZW7zTFMoXQydoa",
+        "platform": "meteora_damm",
+        "timestampMs": "1766476394000",
+        "slot": "388584685",
+        "txIndex": 200,
+        "baseMint": "41jcgMiQrA7fNQGkBFN6t9gbvrZxkhsQR2L1kJpRBHVd",
+        "quoteMint": "So11111111111111111111111111111111111111112",
+        "baseAmount": "7023377152",
+        "quoteAmount": "28781502",
+        "side": "SIDE_BUY",
+        "baseDecimals": 6,
+        "quoteDecimals": 9
+      }
+    ]
+  }
+}
+
+Completed successfully

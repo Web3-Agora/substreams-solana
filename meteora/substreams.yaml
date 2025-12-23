@@ -33,5 +33,5 @@ modules: # 模块列表（数据处理管道）
     inputs: # 模块输入列表
       - map: solana:blocks_without_votes # 使用 solana-common 提供的去除投票交易的区块数据
     output: # 模块输出类型
-      type: proto:meteora.Meteora # 输出为 proto 定义的 meteora.Meteora 消息
+      type: proto:meteora.SwapEvents # 输出为 proto 定义的 meteora.SwapEvents 消息
 network: solana-mainnet-beta # 目标网络：Solana 主网 beta

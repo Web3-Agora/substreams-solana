@@ -2,8 +2,50 @@ syntax = "proto3";
 
 package meteora;
 
-import "sf/solana/type/v1/type.proto";
+// ============================================================================
+// 顶层输出：一个区块内所有 Swap 事件 (扁平化列表)
+// ============================================================================
+message SwapEvents {
+  repeated SwapEvent swaps = 1;
+}
 
-message Meteora {
-  repeated .sf.solana.type.v1.ConfirmedTransaction transactions = 1;
+// ============================================================================
+// 单条 Swap 事件 - 用于 K 线聚合
+// 设计参考: GMGN / DEXScreener 数据格式
+// ============================================================================
+message SwapEvent {
+  // ========== 定位字段 ==========
+  string pool = 1;                   // 流动性池地址 (Base58)
+  string signature = 2;              // 交易签名 (Base58)
+  string user = 3;                   // 交易发起者/Signer (Base58)
+  
+  // ========== 平台与时间 ==========
+  string platform = 4;               // 平台标识: "meteora_dlmm" / "meteora_damm" / "meteora_dbc"
+  uint64 timestamp_ms = 5;           // 毫秒级时间戳
+  uint64 slot = 6;                   // 区块高度
+  uint32 tx_index = 7;               // 交易在区块中的序号
+
+  // ========== 交易对 ==========
+  string base_mint = 8;              // Base Token Mint (通常是 meme/项目币)
+  string quote_mint = 9;             // Quote Token Mint (通常是 SOL/USDC)
+  
+  // ========== 金额 (原始精度, 无小数) ==========
+  uint64 base_amount = 10;           // Base Token 数量
+  uint64 quote_amount = 11;          // Quote Token 数量
+  
+  // ========== 方向 ==========
+  SwapSide side = 12;                // buy = 用 quote 买 base, sell = 卖 base 换 quote
+  
+  // ========== 精度 (可选, 方便前端展示) ==========
+  uint32 base_decimals = 13;         // Base Token 精度
+  uint32 quote_decimals = 14;        // Quote Token 精度
+}
+
+// ============================================================================
+// 交易方向
+// ============================================================================
+enum SwapSide {
+  SIDE_UNKNOWN = 0;
+  SIDE_BUY = 1;                      // 买入 Base (用 Quote 换 Base)
+  SIDE_SELL = 2;                     // 卖出 Base (用 Base 换 Quote)
 }
